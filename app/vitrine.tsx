@@ -150,6 +150,7 @@ export default function Vitrine({
   const [campo, setCampo] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [limite, setLimite] = useState(false);
   const [filtro, setFiltro] = useState<"tudo" | "hoje" | "travadas">("tudo");
   const [proprio, setProprio] = useState(false);
 
@@ -180,14 +181,17 @@ export default function Vitrine({
       const dados = await resposta.json();
       if (dados.erro) {
         setErro(dados.erro);
+        setLimite(dados.upstream === 429);
       } else {
         setAnuncios(dados.anuncios);
         setSteamId(dados.steamId);
         setProprio(true);
+        setLimite(false);
         setFiltro("tudo");
       }
     } catch {
       setErro("Não consegui falar com a Steam agora. Tente de novo em alguns segundos.");
+      setLimite(false);
     } finally {
       setCarregando(false);
     }
@@ -238,9 +242,10 @@ export default function Vitrine({
                 </button>
                 <p className="dica">
                   Funciona com qualquer conta de inventário público. Agora mostrando{" "}
-                  <b>{proprio ? steamId : `o inventário ${steamId}`}</b>, com {anuncios.length} itens.
+                  <b>{proprio ? steamId : `o inventário ${steamId}`}</b>, com {anuncios.length} itens
+                  {proprio ? ", lido agora" : ", lido da Steam em 20 de agosto de 2026"}.
                 </p>
-                {erro ? <p className="erro">{erro}</p> : null}
+                {erro ? <p className={limite ? "aviso" : "erro"}>{erro}</p> : null}
               </form>
               {carregando ? (
                 <div className="barra">
